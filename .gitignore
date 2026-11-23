@@ -2,3 +2,5 @@
 __pycache__/
 *.pyc
 fe-build/04-ingest-to-lakebase/stdout.txt
+feedback on the build.txt
+presentation/

@@ -1,5 +1,36 @@
 # FE-BAR: real-time card fraud detection on Databricks
 
+**Industry:** Financial Services · consumer card issuing · card fraud and risk operations
+
+## Business problem
+
+Card fraud comes in bursts: a stolen card is tested with small charges and then drained, or a taken-over
+account makes a run of purchases within minutes. When detection runs in batch, the issuer finds the burst
+after it's over and absorbs the loss.
+
+| Owner | Role | KPI |
+|---|---|---|
+| Chief Risk Officer | Funds the program; owns the fraud-loss line | Fraud losses (USD) |
+| Head of Card Fraud Strategy | Runs fraud operations | Good customers wrongly blocked; time to restore a blocked card |
+
+## Outcome
+
+Measured on a one-hour replay of 3.6M synthetic transactions (`07-business-impact/01_business_impact`):
+
+| KPI | Baseline: batch detection | Built: real-time blocking | Phase 2: score at authorization |
+|---|---|---|---|
+| Fraud losses | $10.0M | $5.2M (-48%) | $1.2M (-88%) |
+| Cards with fraud blocked | 0 of 4,737 | 4,175 of 4,737 | 4,175 of 4,737 |
+| Good customers' cards blocked | 0 | 1,628 of 17.5M (fewer than 1 in 10,000) | 1,628 |
+| Good spend declined | $0 | $53K (0.02% of purchase volume) | $1.5M (0.54% of purchase volume) |
+| Time to restore a wrongly blocked card | Call-center queue | One click in the fraud-ops app | One click in the fraud-ops app |
+
+Real-time blocking (built) declines a card's transactions after its first flag. Phase 2 calls the same model
+inside the authorization decision, so the flagged transaction is declined too: fraud losses fall further, but
+false alarms are now declined as well, which is the trade-off the risk and fraud owners decide together.
+
+## How it works
+
 Card transactions stream from Kafka, get scored by an ML model in Spark real-time mode, and land in
 Lakebase, where a Postgres trigger blocks the card when a transaction is flagged. A Genie Agent and a
 Databricks App sit on top for analysts.
@@ -49,10 +80,11 @@ fraud patterns, plus one live hour (~3.6M transactions, ~1,000 per second) repla
 | 11 | `03-kafka-ingest/02_stream_to_kafka` | Replay the live hour into Kafka |
 | 12 | `05-genie-agents/01_create_genie_agent` | Genie Agent |
 | 13 | `06-databricks-app/01_deploy_app` | Databricks App |
+| 14 | `07-business-impact/01_business_impact` (serverless) | Fraud losses and good-customer impact, baseline to target |
 
 Start step 10 a minute or two before step 11; the first micro-batch includes warm-up time.
 
-## Results from one run
+## Technical results from one run
 
 | Metric | Value |
 |---|---|
