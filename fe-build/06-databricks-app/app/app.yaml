@@ -1,0 +1,13 @@
+command: ["streamlit", "run", "app.py"]
+
+env:
+  - name: LAKEBASE_ENDPOINT
+    valueFrom: postgres
+  - name: WAREHOUSE_ID
+    valueFrom: sql-warehouse
+  - name: GENIE_SPACE_ID
+    valueFrom: genie-space
+  - name: LIVE_TRANSACTIONS_TABLE
+    value: murali_talluri.fe_bar.transactions_live
+  - name: SCORED_TRANSACTIONS_TABLE
+    value: fe_bar_mt_lakebase.fe_bar.transactions
